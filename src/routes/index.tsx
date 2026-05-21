@@ -314,15 +314,24 @@ function Features() {
   return (
     <section id="features" className="py-24 md:py-28">
       <div className="mx-auto max-w-[1180px] px-6">
-        <SectionHeading
-          eyebrow="What Cardinal does"
-          title="Three layers of protection."
-          subtitle="Each layer works on its own, and snaps together when you need depth."
-        />
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        <RevealOnScroll variant="rise">
+          <SectionHeading
+            eyebrow="What Cardinal does"
+            title="Three layers of protection."
+            subtitle="Each layer works on its own, and snaps together when you need depth."
+          />
+        </RevealOnScroll>
+        <motion.div
+          className="mt-12 grid gap-4 md:grid-cols-3"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={{ show: { transition: { staggerChildren: 0.09 } } }}
+        >
           {items.map((it) => (
-            <div
+            <motion.div
               key={it.title}
+              variants={riseChild}
               className="surface-raise group rounded-2xl p-6 transition-transform hover:-translate-y-0.5"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--surface-3)] text-[var(--violet)]">
@@ -340,9 +349,9 @@ function Features() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -359,14 +368,22 @@ function HowItWorks() {
   return (
     <section id="how" className="border-t hairline py-24 md:py-28">
       <div className="mx-auto max-w-[1180px] px-6">
-        <SectionHeading
-          eyebrow="How it works"
-          title="A clear path from intent to safety."
-          subtitle="Five steps, every time. No surprises, no jargon."
-        />
-        <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border hairline bg-[var(--hairline)] md:grid-cols-5">
+        <RevealOnScroll variant="rise">
+          <SectionHeading
+            eyebrow="How it works"
+            title="A clear path from intent to safety."
+            subtitle="Five steps, every time. No surprises, no jargon."
+          />
+        </RevealOnScroll>
+        <motion.div
+          className="mt-12 grid gap-px overflow-hidden rounded-2xl border hairline bg-[var(--hairline)] md:grid-cols-5"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={{ show: { transition: { staggerChildren: 0.06 } } }}
+        >
           {steps.map((s) => (
-            <div key={s.n} className="bg-[var(--surface)] p-6">
+            <motion.div key={s.n} variants={riseChild} className="bg-[var(--surface)] p-6">
               <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Step {s.n}
               </div>
@@ -374,9 +391,9 @@ function HowItWorks() {
                 {s.title}
               </h4>
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -392,14 +409,22 @@ function Roadmap() {
   return (
     <section id="roadmap" className="border-t hairline py-24 md:py-28">
       <div className="mx-auto max-w-[1180px] px-6">
-        <SectionHeading
-          eyebrow="Roadmap"
-          title="What we're building next."
-          subtitle="A focused path. Each quarter, one meaningful layer of safety."
-        />
-        <div className="mt-12 grid gap-4 md:grid-cols-4">
+        <RevealOnScroll variant="rise">
+          <SectionHeading
+            eyebrow="Roadmap"
+            title="What we're building next."
+            subtitle="A focused path. Each quarter, one meaningful layer of safety."
+          />
+        </RevealOnScroll>
+        <motion.div
+          className="mt-12 grid gap-4 md:grid-cols-4"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+        >
           {items.map((r) => (
-            <div key={r.title} className="surface-raise rounded-2xl p-5">
+            <motion.div key={r.title} variants={riseChild} className="surface-raise rounded-2xl p-5">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground">
                   {r.q}
@@ -410,9 +435,9 @@ function Roadmap() {
                 {r.title}
               </h4>
               <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{r.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -440,15 +465,28 @@ function CtaBanner() {
   return (
     <section className="relative border-t hairline py-24">
       <div className="mx-auto max-w-[1180px] px-6">
-        <div className="relative overflow-hidden rounded-3xl border hairline-strong bg-[var(--surface)] p-10 md:p-14">
-          <div
-            className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[860px] -translate-x-1/2 rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
-            }}
-          />
-          <div className="relative grid items-center gap-8 md:grid-cols-[1.4fr_auto]">
+        <RevealOnScroll variant="rise" amount={0.25}>
+          <div className="relative overflow-hidden rounded-3xl border hairline-strong bg-[var(--surface)] p-10 md:p-14">
+            <motion.div
+              className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[860px] -translate-x-1/2 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
+              }}
+              animate={{ opacity: [0.55, 0.85, 0.55], scale: [1, 1.05, 1] }}
+              transition={{ duration: 12, ease: "easeInOut", repeat: Infinity }}
+            />
+            <motion.div
+              className="pointer-events-none absolute inset-0 opacity-60"
+              style={{
+                backgroundImage:
+                  "linear-gradient(120deg, rgba(139,92,246,0.06) 0%, rgba(99,102,241,0.04) 50%, rgba(6,182,212,0.05) 100%)",
+                backgroundSize: "200% 200%",
+              }}
+              animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
+              transition={{ duration: 30, ease: "linear", repeat: Infinity }}
+            />
+            <div className="relative grid items-center gap-8 md:grid-cols-[1.4fr_auto]">
             <div>
               <h2 className="font-display text-[clamp(30px,4.5vw,48px)] font-medium leading-[1.05] tracking-[-0.02em]">
                 Protection from every direction.
@@ -460,14 +498,15 @@ function CtaBanner() {
             </div>
             <Link
               to="/app"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-[var(--violet)] px-6 text-[14px] font-medium text-white transition-transform hover:-translate-y-px"
+              className="group btn-lift shimmer-cta relative inline-flex h-12 items-center gap-2 overflow-hidden rounded-xl bg-[var(--violet)] px-6 text-[14px] font-medium text-white"
               style={{ boxShadow: "0 18px 50px -12px rgba(139,92,246,0.65)" }}
             >
-              Open the app
-              <ArrowUpRight className="h-4 w-4" />
+              <span className="relative z-10">Open the app</span>
+              <ArrowUpRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
+            </div>
           </div>
-        </div>
+        </RevealOnScroll>
       </div>
     </section>
   );
