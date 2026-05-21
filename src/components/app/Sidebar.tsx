@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Copy, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { PRESETS, RECENT_ACTIVITY, TOKENS, MOCK_ADDRESS, MOCK_ENS, shortAddr } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
@@ -236,11 +237,18 @@ function TabBtn({
     <button
       onClick={onClick}
       className={cn(
-        "flex-1 rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors",
-        active ? "bg-[var(--surface-3)] text-foreground" : "text-muted-foreground hover:text-foreground",
+        "relative flex-1 rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors",
+        active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      {children}
+      {active && (
+        <motion.span
+          layoutId="sidebar-tab"
+          transition={{ type: "spring", stiffness: 360, damping: 32 }}
+          className="absolute inset-0 rounded-md bg-[var(--surface-3)]"
+        />
+      )}
+      <span className="relative">{children}</span>
     </button>
   );
 }
