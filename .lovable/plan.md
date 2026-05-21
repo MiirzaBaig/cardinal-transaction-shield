@@ -1,164 +1,105 @@
-# Cardinal — Phase 1 Frontend Plan (revised)
+# `/app` — Revamp plan
 
-Premium Web3 transaction firewall UI. Phase 1 is visual + UX only — no wallet SDKs, auth, or backend. **Priority order: `/app` first, then landing, then about.**
+## What's wrong today
 
-## Stack note
+Looking at the current screen, the page is doing too much in parallel and you can't tell where to look first.
 
-You asked for Next.js App Router. Lovable scaffolds web apps from a fixed TanStack Start + React + Vite + Tailwind + TS template. Every visual/UX requirement is fully achievable on it; only the framework name differs. If Next.js is a hard requirement you'd need to export. Proceeding on the supported stack.
+- **Three columns of equal weight.** Wallet rail (left), composer (center), signal log + activity (right) all compete. The composer — the actual product — is the smallest of the three.
+- **The wallet rail has four stacked cards** (account, total balance, balances, quick actions) and most of them are just chrome. "Total balance" and "Balances" overlap. "Quick actions" doesn't do anything useful yet.
+- **The signal log on the right is empty** until you scan. That's a big idle card eating the page.
+- **Recent activity sits next to the composer**, pulling attention away from the thing you're supposed to be doing.
+- **The header takes ~25% of vertical space** ("Control center / Scan before you send / Compose a transaction…") before you can see the actual composer.
+- **Demo presets are in a horizontal row that crowds the top of the composer column**, so the three options feel like nav, not like a primary CTA.
 
-## Design system
+Net effect: the page feels like a dashboard instead of a single, confident workflow.
 
-Single source of truth in `index.css` + `tailwind.config.ts`.
+## New direction — focused workspace, one job at a time
 
-- **Typography — Linear/Phantom restraint, not sci-fi**
-  - Display: **Space Grotesk**, weight 500 (not 700), tight tracking (-0.02em), used at moderate display sizes (clamp 40–72px) — confident, not theatrical
-  - Body: **Inter**, 400/500, normal tracking, 15–16px base
-  - Mono: JetBrains Mono for addresses, hashes, chain IDs
-  - No all-caps headings, no condensed/wide stretching, no sci-fi letterforms
-- **Color**
-  - `--bg` #08080F, `--surface` #0E0E16, `--surface-2` #14141E, `--surface-3` #1A1A26
-  - `--border` rgba(255,255,255,0.07), `--border-strong` rgba(255,255,255,0.12)
-  - `--text` #ECECF2, `--muted` #9696A8, `--muted-2` #6B6B7D
-  - `--violet` #8B5CF6, `--indigo` #6366F1, `--cyan` #06B6D4
-  - `--success` #34D399, `--warning` #FBBF24, `--danger` #EF4444
-- **Depth over blur** — surfaces are mostly solid `--surface-*` tiers with 1px hairline borders and subtle inner-top highlight; backdrop-blur reserved for the floating navbar and modal overlays only. No frosted cards stacked on frosted cards.
-- **Light/glow** — one or two restrained ambient violet washes per page, far behind content, low opacity. No constant glow on every card.
-- **Spacing** — generous: 8/12/16/24/32/48/64/96 scale; sections breathe.
-- **Radii** — 10px inputs, 14px cards, 18px large panels. Not pill-shaped.
-- **Motion** — fade-in-up on mount, 1–2px hover lift, 180–320ms easings, animated counters on results. Respect `prefers-reduced-motion`.
-- **Background** — faint dotted grid at ~4% opacity + one radial violet wash. That's it.
-
-## Routes & structure
+Strip `/app` down to one clear path: **pick a scenario → compose → scan → decide**. Everything else collapses or moves out of the way.
 
 ```text
-src/
-  routes/
-    __root.tsx
-    index.tsx        # Landing
-    about.tsx        # About
-    app.tsx          # App — control center (primary focus)
-  components/
-    layout/   Navbar, Footer, AppShell
-    app/      WalletRail, NetworkPill, AccountChip,
-              TxComposer (Chain, Token, Recipient, Amount, Type),
-              DemoPresetBar, ActivityFeed, SignalsLog,
-              ScanProgress, VerdictHeader, ResultPanel,
-              RiskMeter, SignalRow, DetailsDrawer
-    marketing/ Hero, Features, HowItWorks, MockPreview, Roadmap, CtaBanner
-    ui/       Button, Surface, Badge, Select, Input, Checkbox, Tabs, Tooltip
-  lib/        mockScan.ts, mockData.ts (addresses, presets, signals)
+┌─────────────────────────────────────────────────────────────────────┐
+│  Cardinal · Ethereum ▾ · Standard ▾           vault.cardinal.eth ▾  │  thin topbar (unchanged)
+├──────────────────┬──────────────────────────────────────────────────┤
+│                  │                                                  │
+│  Sidebar         │  ── Stepper: ① Compose  ② Scan  ③ Decide ───     │
+│  (collapsible)   │                                                  │
+│                  │  ┌──────────────────────────────────────────┐    │
+│  Wallet (compact)│  │                                          │    │
+│  Tabs:           │  │      One large workspace surface         │    │
+│  · Activity      │  │      Composer → Scan → Verdict           │    │
+│  · Balances      │  │                                          │    │
+│                  │  │                                          │    │
+│  Demo scenarios  │  └──────────────────────────────────────────┘    │
+│  (chips/list)    │                                                  │
+│                  │                                                  │
+└──────────────────┴──────────────────────────────────────────────────┘
 ```
 
-## `/app` — Transaction Control Center (primary focus)
+## What changes specifically
 
-Not a centered form. A real working surface with multiple coordinated regions. Desktop is the design target; collapses to stacked panels on mobile.
+### 1. Kill the three-column layout
+- Drop to **two columns**: a compact 260px sidebar, and a wide workspace.
+- Sidebar is **collapsible** (chevron in the corner) → workspace goes full-width.
 
-### Layout (desktop)
+### 2. Compact wallet block (top of sidebar)
+- One small card: avatar pip + ENS + short address + "read-only" badge.
+- That's it. No "total balance" card, no quick actions card.
+- A single **tabbed strip** below: `Activity` · `Balances`. Default = Activity. List view in both.
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│  Cardinal · Network ▾ · Mode ▾                  Account 0x1c…a93f ▾ │  top bar
-├──────────────┬────────────────────────────────┬──────────────────────┤
-│              │                                │                      │
-│  Left rail   │     Center: Composer / Scan /  │  Right: Signals &    │
-│  Wallet      │     Verdict (single surface,   │  Activity            │
-│  Balances    │     swaps content by state)    │                      │
-│  Quick acts  │                                │                      │
-│              │                                │                      │
-└──────────────┴────────────────────────────────┴──────────────────────┘
-```
+### 3. Demo scenarios become the entry point, not an afterthought
+- Move them into the sidebar as a labeled list, **above the wallet** (because that's the first decision):
+  - `Safe transfer` · green dot
+  - `Risky approval` · amber dot
+  - `Drainer contract` · red dot
+- Each is a single tap. The active one is highlighted in the sidebar so you always know which scenario is loaded.
+- Also keep a single small "Custom transaction" entry that opens the blank composer.
 
-### Top bar
-Cardinal mark, network selector (Ethereum / Base / Arbitrum / Polygon), mode selector (Standard / Strict / Watch-only), mock `ConnectWalletButton` → resolves to account chip with ENS-style label, balance, disconnect.
+### 4. Workspace surface — one large card, three sequential states
+- Replace the page heading "Control center / Scan before you send" with a thin **stepper** inside the surface header: `① Compose  ② Scan  ③ Decide`. The stepper itself communicates what page you're on, so the giant H1 is unnecessary.
+- The surface fills the rest of the viewport and only ever shows one state at a time:
+  1. **Compose** — the existing TxComposer, but breathing in the full width: type tabs across the top, recipient on its own row, amount + token on one row, gas/sim strip as a foot, primary "Scan transaction" button anchored bottom-right.
+  2. **Scan** — checklist + soft progress bar, exactly as today.
+  3. **Decide** — `VerdictHeader` + grouped signals. The **right rail's old "Signal log" merges into here** as a collapsible "Live trace" panel under the signals (so it only shows when there's something to show).
 
-### Left rail — Wallet panel
-- Account header: avatar pip, label, full mono address with copy
-- Network + read-only badge
-- Token balances list (ETH, USDC, USDT, DAI — mock), small sparkline per row
-- Quick actions: "New scan", "Paste calldata", "Import tx hash" (UI only)
+### 5. Sidebar Activity tab replaces the right rail
+- The "Recent activity" feed that was on the right slides into the sidebar's Activity tab.
+- Clicking an item rehydrates the workspace with that scan's verdict (already in mock data).
+- Empty signal-log card is removed entirely.
 
-### Center — state machine (one surface, three states)
+### 6. Header cleanup
+- Remove "Control center / Scan before you send / Compose a transaction, run it…" block above the grid. It's redundant once the stepper is in place.
+- Top app bar (Cardinal · network · mode · account) stays as is.
 
-1. **Composer (default)**
-   - Tabs: **Transfer · Approval · Contract call · Swap**
-   - Recipient input (mono, with paste, with avatar resolver showing seen-before / unknown / flagged pill)
-   - Amount with token select + USD estimate + max button
-   - For Approval: spender + allowance (Unlimited toggle visible and called out)
-   - For Contract call: target + function signature + decoded params (mocked)
-   - Gas estimate strip + simulation status pill ("Ready to scan")
-   - **DemoPresetBar** above composer: "Safe transfer", "Risky approval", "Drainer contract" — one click prefills a believable scenario
-   - Primary: **Scan transaction**. Secondary: Reset.
+### 7. Density + hierarchy
+- One ambient violet wash behind the workspace surface only (not the whole page).
+- Sidebar surfaces drop to flat `--surface` (no glass, no shadow) so the workspace surface visually leads.
+- Recent activity rows lose the timestamp column on narrow widths and rely on tooltips.
 
-2. **Scan in progress** (replaces composer in place, ~2.5s)
-   - Header keeps tx summary visible (don't lose context)
-   - Sequential checklist with subtle progress shimmer:
-     1. Checking network
-     2. Resolving recipient
-     3. Reviewing permissions
-     4. Running simulation
-     5. Scoring risk
-   - Soft violet wash pulses behind the surface; no spinner theatrics
+## What stays
 
-3. **Verdict** (replaces scan)
-   - `VerdictHeader`: large status word (Allow / Review / Block), one-line plain-English summary, animated risk score 0–100 with `RiskMeter`
-   - **Signals list** — grouped rows (Recipient, Permissions, Simulation, Network, Contract). Each row: severity dot, label, one-line plain-English explanation, expand for detail. No jargon in the headline; jargon allowed inside expanded detail.
-   - Footer actions per state:
-     - **ALLOW** — green accent line, "Proceed" (primary), "Run another scan"
-     - **REVIEW** — amber accent line, required acknowledgement checkbox ("I've read the warnings"), "Proceed anyway" disabled until checked, "Cancel"
-     - **BLOCK** — red accent line, "Cancel transaction" primary, proceed permanently disabled, link "Why was this blocked?" opens `DetailsDrawer`
+- All existing components: `TxComposer`, `ScanProgress`, `VerdictHeader`, `RiskMeter`, `SignalRow`, `ResultPanel`, `DetailsDrawer`, `ActivityFeed`, mock scan logic, demo presets.
+- Color tokens, type system, motion language.
+- The verdict footer pattern (Allow/Review/Block) — proven, don't touch.
 
-### Right rail — Signals & Activity
-- **Live signal log** during scan: streaming lines as each check completes (e.g. "Recipient address has 14 prior interactions", "Token approval requested: Unlimited")
-- **Recent activity** below: mock past scans, each a row with verdict pill, recipient short, amount, timestamp — click to re-open verdict
-- This rail is what makes it feel like a control center, not a form
+## What gets removed
 
-### Details drawer
-Slide-in from the right covering the right rail. Shows full per-signal breakdown, simulation trace summary, raw recipient metadata. Plain-English up top, technical detail collapsed below.
+- `WalletRail`'s "Total balance" card and "Quick actions" card.
+- Right-column `SignalsLog` standalone surface (merges into Decide state).
+- Standalone `DemoPresetBar` (its content moves into the sidebar).
+- Page-level "Control center" heading block.
 
-### Empty / disconnected state
-Center panel shows a calm "Connect a wallet to begin" with one CTA; rails remain visible but muted. Demo presets still usable without connect.
+## Files affected (technical, FYI)
 
-## Mock scan logic
+- `src/routes/app.tsx` — restructure to 2-col layout + stepper state.
+- `src/components/app/WalletRail.tsx` — slim down to compact card.
+- New `src/components/app/Sidebar.tsx` — scenarios list, wallet, tabs.
+- `src/components/app/SignalsLog.tsx` — repurpose as "Live trace" inside the verdict state.
+- `src/components/app/DemoPresetBar.tsx` — delete (replaced by sidebar list).
+- `src/components/app/ResultPanel.tsx` — embed the live trace toggle.
 
-`lib/mockScan.ts` — pure typed function. Presets map to deterministic verdicts with believable signal sets. Freeform inputs route by simple heuristics (recipient suffix, amount, type, approval=unlimited) so the UI stays alive without randomness.
+## Open question
 
-```ts
-type Severity = 'info' | 'warn' | 'danger';
-type Verdict = 'ALLOW' | 'REVIEW' | 'BLOCK';
-type Signal = { group: 'Recipient'|'Permissions'|'Simulation'|'Network'|'Contract';
-                label: string; detail: string; severity: Severity };
-type ScanResult = { verdict: Verdict; score: number; summary: string; signals: Signal[] };
-```
+Want the sidebar to default **open** (260px) or **collapsed to icons** (56px)? Open feels more inviting for first-time users; collapsed feels more "pro tool / control center." I'll default to **open** unless you say otherwise.
 
-## Landing page (`/`) — secondary
-
-Calm, restrained. The `/app` experience does the heavy lifting; landing supports it.
-
-- Floating navbar (only place blur is used)
-- **Hero**: "Scan before you send." / sub: "Cardinal inspects every transaction before you sign — and tells you to allow, review, or block." Primary "Launch App", ghost "How it works". Quiet trust row.
-- **Live mock preview**: a real `VerdictHeader` + signals snippet rendered from the same components as `/app` — sells the product in one glance
-- **Features (3)**: Risk Scan, SafeSend, Escrow Vault — icon + one-line promise + 3 capabilities
-- **How it works**: 5-step horizontal timeline (Connect → Compose → Scan → Verdict → Proceed/Stop)
-- **Positioning strip**: non-custodial, deterministic, plain-English
-- **Roadmap**: 4 quarters, status pills
-- **CTA banner**: "Protection from every direction." + Launch App
-- **Footer**: minimal three-column
-
-## About page (`/about`)
-
-Mission · Why Cardinal exists · Four security principles (Non-custodial, Deterministic, Plain English, Open by design) · Architecture diagram (Client → Scan Engine → Signal Sources → Verdict) · Placeholder team grid.
-
-## Out of scope (Phase 1)
-
-Wagmi, RainbowKit, real wallets, auth, DB, NestJS backend, SafeSend contracts, risk APIs. Adapter boundaries left clean: `ConnectWalletButton`, `mockScan`, `mockData` swap out 1:1 later.
-
-## Build order
-
-1. Design tokens + base UI primitives (Button, Surface, Badge, Input, Select, Tabs)
-2. `AppShell` + `/app` state machine (Composer → Scan → Verdict) with all three result states and demo presets
-3. Right-rail Signals & Activity + Details drawer
-4. Landing page (reusing verdict components for the mock preview)
-5. About page
-6. Polish pass: motion, focus rings, reduced-motion, responsive collapse
-
-Confirm and I'll build.
+Approve and I'll build it.
