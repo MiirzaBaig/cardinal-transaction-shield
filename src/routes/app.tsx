@@ -2,12 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppTopBar } from "@/components/layout/AppTopBar";
-import { PageBackground } from "@/components/layout/Background";
-import { WalletRail } from "@/components/app/WalletRail";
-import { ActivityFeed } from "@/components/app/ActivityFeed";
-import { SignalsLog } from "@/components/app/SignalsLog";
+import { Sidebar } from "@/components/app/Sidebar";
+import { Stepper, type Stage } from "@/components/app/Stepper";
 import { TxComposer, type ComposerState } from "@/components/app/TxComposer";
-import { DemoPresetBar } from "@/components/app/DemoPresetBar";
 import { ScanProgress } from "@/components/app/ScanProgress";
 import { ResultPanel } from "@/components/app/ResultPanel";
 import { DetailsDrawer } from "@/components/app/DetailsDrawer";
@@ -17,11 +14,9 @@ import { runMockScan, type ScanResult } from "@/lib/mockScan";
 export const Route = createFileRoute("/app")({
   component: AppPage,
   head: () => ({
-    meta: [{ title: "Cardinal — Transaction Control Center" }],
+    meta: [{ title: "Cardinal — Workspace" }],
   }),
 });
-
-type Stage = "compose" | "scanning" | "verdict";
 
 const initialComposer: ComposerState = {
   type: "transfer",
@@ -38,6 +33,8 @@ function AppPage() {
   const [connected, setConnected] = useState(true);
   const [chain, setChain] = useState("ethereum");
   const [mode, setMode] = useState<"Standard" | "Strict" | "Watch-only">("Standard");
+  const [collapsed, setCollapsed] = useState(false);
+
   const [composer, setComposer] = useState<ComposerState>(initialComposer);
   const [activePreset, setActivePreset] = useState<string | undefined>();
   const [stage, setStage] = useState<Stage>("compose");
@@ -47,6 +44,8 @@ function AppPage() {
   const onPickPreset = (id: "safe" | "review" | "block") => {
     const p = PRESETS.find((x) => x.id === id)!;
     setActivePreset(id);
+    setStage("compose");
+    setResult(null);
     setComposer({
       ...initialComposer,
       ...p.fields,
@@ -57,13 +56,12 @@ function AppPage() {
   };
 
   const onScan = () => {
-    setStage("scanning");
     const res = runMockScan({
       ...composer,
       presetId: activePreset as "safe" | "review" | "block" | undefined,
     });
-    // result computed up-front; ScanProgress controls reveal timing
     setResult(res);
+    setStage("scanning");
   };
 
   const onScanDone = () => setStage("verdict");
@@ -75,9 +73,14 @@ function AppPage() {
     setStage("compose");
   };
 
+  const onPickActivity = () => {
+    // mock: surface a review verdict
+    setActivePreset("review");
+    onPickPreset("review");
+  };
+
   return (
-    <div className="relative min-h-screen">
-      <PageBackground />
+    <div className="flex h-screen flex-col bg-[var(--background)]">
       <AppTopBar
         connected={connected}
         onToggleConnect={() => setConnected((v) => !v)}
@@ -87,35 +90,49 @@ function AppPage() {
         onMode={setMode}
       />
 
-      <div className="relative z-10 mx-auto max-w-[1380px] px-5 py-6">
-        {/* Page heading */}
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Control center
-            </span>
-            <h1 className="mt-1.5 font-display text-[34px] font-medium leading-none tracking-tight">
-              Scan before you send
-            </h1>
-          </div>
-          <p className="hidden max-w-sm text-right text-[13px] leading-relaxed text-muted-foreground md:block">
-            Compose a transaction, run it through Cardinal, and get a clear allow,
-            review, or block — before you sign.
-          </p>
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          className="shrink-0 transition-[width] duration-200"
+          style={{ width: collapsed ? 56 : 288 }}
+        >
+          <Sidebar
+            collapsed={collapsed}
+            onToggleCollapsed={() => setCollapsed((v) => !v)}
+            activePreset={activePreset}
+            onPickPreset={onPickPreset}
+            onCustom={onReset}
+            onPickActivity={onPickActivity}
+          />
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)_340px]">
-          {/* Left: wallet rail */}
-          <WalletRail
-            connected={connected}
-            onConnect={() => setConnected(true)}
-            onNewScan={onReset}
-          />
+        {/* Workspace */}
+        <main className="relative flex-1 overflow-y-auto">
+          {/* Ambient wash, scoped to workspace */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div
+              className="absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 70%)",
+              }}
+            />
+          </div>
 
-          {/* Center: state machine */}
-          <div className="flex flex-col gap-4">
-            <DemoPresetBar active={activePreset} onPick={onPickPreset} />
+          <div className="relative z-10 mx-auto flex min-h-full max-w-[920px] flex-col px-6 py-8">
+            {/* Workspace header */}
+            <div className="mb-5 flex items-center justify-between">
+              <Stepper stage={stage} />
+              <div className="hidden items-center gap-2 text-[11.5px] text-muted-foreground md:flex">
+                <span className="font-mono uppercase tracking-[0.16em]">Scenario</span>
+                <span className="rounded-md border hairline px-2 py-0.5 text-foreground/85">
+                  {activePreset
+                    ? PRESETS.find((p) => p.id === activePreset)?.label
+                    : "Custom transaction"}
+                </span>
+              </div>
+            </div>
 
+            {/* Workspace surface */}
             <div className="surface-raise overflow-hidden rounded-2xl">
               <AnimatePresence mode="wait">
                 {stage === "compose" && (
@@ -124,7 +141,7 @@ function AppPage() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.22 }}
                   >
                     <TxComposer
                       value={composer}
@@ -163,14 +180,12 @@ function AppPage() {
                 )}
               </AnimatePresence>
             </div>
-          </div>
 
-          {/* Right: signals + activity */}
-          <div className="flex flex-col gap-4">
-            <SignalsLog scanning={stage === "scanning"} />
-            <ActivityFeed />
+            <p className="mt-4 text-center text-[11.5px] text-muted-foreground">
+              Mock data · No real transactions are sent in this preview.
+            </p>
           </div>
-        </div>
+        </main>
       </div>
 
       <DetailsDrawer open={drawer} onClose={() => setDrawer(false)} result={result} />
