@@ -7,9 +7,11 @@ import { Stepper, type Stage } from "@/components/app/Stepper";
 import { TxComposer, type ComposerState } from "@/components/app/TxComposer";
 import { ScanProgress } from "@/components/app/ScanProgress";
 import { ResultPanel } from "@/components/app/ResultPanel";
+import { SubmittedPanel } from "@/components/app/SubmittedPanel";
 import { DetailsDrawer } from "@/components/app/DetailsDrawer";
 import { PRESETS } from "@/lib/mockData";
 import { runMockScan, type ScanResult } from "@/lib/mockScan";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app")({
   component: AppPage,
@@ -37,7 +39,7 @@ function AppPage() {
 
   const [composer, setComposer] = useState<ComposerState>(initialComposer);
   const [activePreset, setActivePreset] = useState<string | undefined>();
-  const [stage, setStage] = useState<Stage>("compose");
+  const [stage, setStage] = useState<Stage | "submitted" | "cancelled">("compose");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [drawer, setDrawer] = useState(false);
 
@@ -71,6 +73,20 @@ function AppPage() {
     setActivePreset(undefined);
     setResult(null);
     setStage("compose");
+  };
+
+  const onProceed = () => {
+    toast.success("Transaction submitted", {
+      description: "Mock broadcast · no real transaction was sent.",
+    });
+    setStage("submitted");
+  };
+
+  const onCancel = () => {
+    toast("Transaction cancelled", {
+      description: "Cardinal blocked the request.",
+    });
+    setStage("cancelled");
   };
 
   const onPickActivity = () => {
@@ -175,7 +191,19 @@ function AppPage() {
                       result={result}
                       onReset={onReset}
                       onDetails={() => setDrawer(true)}
+                      onProceed={onProceed}
+                      onCancel={onCancel}
                     />
+                  </motion.div>
+                )}
+                {(stage === "submitted" || stage === "cancelled") && (
+                  <motion.div
+                    key={stage}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                  >
+                    <SubmittedPanel kind={stage} onReset={onReset} />
                   </motion.div>
                 )}
               </AnimatePresence>
