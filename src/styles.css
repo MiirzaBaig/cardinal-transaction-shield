@@ -343,6 +343,24 @@
   .btn-lift:hover:not(:disabled) { transform: translateY(-1px); }
   .btn-lift:active:not(:disabled) { transform: translateY(0) scale(0.99); }
 
+  /* CTA shimmer sweep — one-shot on hover */
+  .shimmer-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 900ms var(--ease-out-expo);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .shimmer-cta:hover::before { transform: translateX(120%); }
+
   @media (prefers-reduced-motion: reduce) {
     .scan-sweep,
     .ambient-drift-a,
@@ -354,5 +372,6 @@
       animation: none !important;
     }
     .btn-lift:hover:not(:disabled) { transform: none; }
+    .shimmer-cta::before { display: none; }
   }
 }
