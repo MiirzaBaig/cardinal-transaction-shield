@@ -20,10 +20,14 @@ export function ResultPanel({
   result,
   onReset,
   onDetails,
+  onProceed,
+  onCancel,
 }: {
   result: ScanResult;
   onReset: () => void;
   onDetails: () => void;
+  onProceed: () => void;
+  onCancel: () => void;
 }) {
   const [ack, setAck] = useState(false);
   const [traceOpen, setTraceOpen] = useState(false);
@@ -104,6 +108,7 @@ export function ResultPanel({
         <div className="flex flex-wrap items-center gap-3">
           {v === "ALLOW" && (
             <button
+              onClick={onProceed}
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--success)] px-5 text-[14px] font-medium text-[#062014] transition-transform hover:-translate-y-px"
               style={{ boxShadow: "0 12px 36px -12px rgba(52,211,153,0.55)" }}
             >
@@ -112,6 +117,7 @@ export function ResultPanel({
           )}
           {v === "REVIEW" && (
             <button
+              onClick={onProceed}
               disabled={!ack}
               className={cn(
                 "inline-flex h-11 items-center gap-2 rounded-xl px-5 text-[14px] font-medium transition-all",
@@ -126,7 +132,10 @@ export function ResultPanel({
           )}
           {v === "BLOCK" && (
             <>
-              <button className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--danger)] px-5 text-[14px] font-medium text-white">
+              <button
+                onClick={onCancel}
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--danger)] px-5 text-[14px] font-medium text-white"
+              >
                 <X className="h-4 w-4" /> Cancel transaction
               </button>
               <button
