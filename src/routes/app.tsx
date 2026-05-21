@@ -125,11 +125,15 @@ function AppPage() {
         <main className="relative flex-1 overflow-y-auto">
           {/* Ambient wash, scoped to workspace */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div
-              className="absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full"
+            <motion.div
+              key={`wash-${stage}`}
+              initial={{ opacity: 0.4 }}
+              animate={{ opacity: [0.4, 0.7, 0.55] }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute -top-40 left-1/2 h-[560px] w-[960px] -translate-x-1/2 rounded-full"
               style={{
-                background:
-                  "radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 70%)",
+                background: washForStage(stage, result?.verdict),
+                filter: "blur(8px)",
               }}
             />
           </div>
@@ -155,15 +159,19 @@ function AppPage() {
             </div>
 
             {/* Workspace surface */}
-            <div className="surface-raise overflow-hidden rounded-2xl">
+            <motion.div
+              layout
+              transition={{ layout: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } }}
+              className="surface-raise overflow-hidden rounded-2xl"
+            >
               <AnimatePresence mode="wait">
                 {stage === "compose" && (
                   <motion.div
                     key="compose"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.22 }}
+                    initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <TxComposer
                       value={composer}
@@ -179,9 +187,10 @@ function AppPage() {
                 {stage === "scanning" && (
                   <motion.div
                     key="scan"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <ScanProgress onDone={onScanDone} />
                   </motion.div>
@@ -189,9 +198,10 @@ function AppPage() {
                 {stage === "verdict" && result && (
                   <motion.div
                     key="result"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
+                    initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                    transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <ResultPanel
                       result={result}
@@ -205,15 +215,16 @@ function AppPage() {
                 {(stage === "submitted" || stage === "cancelled") && (
                   <motion.div
                     key={stage}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
+                    initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <SubmittedPanel kind={stage} onReset={onReset} />
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
 
             <p className="mt-4 text-center text-[11.5px] text-muted-foreground">
               Mock data · No real transactions are sent in this preview.
@@ -225,4 +236,29 @@ function AppPage() {
       <DetailsDrawer open={drawer} onClose={() => setDrawer(false)} result={result} />
     </div>
   );
+}
+
+function washForStage(
+  stage: Stage | "submitted" | "cancelled",
+  verdict?: "ALLOW" | "REVIEW" | "BLOCK",
+) {
+  if (stage === "scanning") {
+    return "radial-gradient(closest-side, rgba(99,102,241,0.22), rgba(6,182,212,0.08) 55%, transparent 75%)";
+  }
+  if (stage === "verdict" && verdict) {
+    const col =
+      verdict === "ALLOW"
+        ? "rgba(52,211,153,0.22)"
+        : verdict === "REVIEW"
+          ? "rgba(251,191,36,0.22)"
+          : "rgba(239,68,68,0.22)";
+    return `radial-gradient(closest-side, ${col}, transparent 70%)`;
+  }
+  if (stage === "submitted") {
+    return "radial-gradient(closest-side, rgba(52,211,153,0.20), transparent 70%)";
+  }
+  if (stage === "cancelled") {
+    return "radial-gradient(closest-side, rgba(239,68,68,0.18), transparent 70%)";
+  }
+  return "radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 70%)";
 }
