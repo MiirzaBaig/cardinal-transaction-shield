@@ -10,11 +10,21 @@ import {
   Vault,
   Workflow,
 } from "lucide-react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import { useRef } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBackground } from "@/components/layout/Background";
+import { RevealOnScroll, riseChild } from "@/components/layout/RevealOnScroll";
 import { VerdictHeader } from "@/components/app/VerdictHeader";
 import { SignalRow } from "@/components/app/SignalRow";
+import { ease, dur } from "@/lib/motion";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -39,61 +49,156 @@ function Index() {
 }
 
 function Hero() {
+  const reduce = useReducedMotion();
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  // Mouse-reactive perspective (max 2°)
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rxSpring = useSpring(my, { stiffness: 90, damping: 18 });
+  const rySpring = useSpring(mx, { stiffness: 90, damping: 18 });
+  const rotateX = useTransform(rxSpring, [-0.5, 0.5], [2, -2]);
+  const rotateY = useTransform(rySpring, [-0.5, 0.5], [-2, 2]);
+  // Preview card counter-tilts a touch more for depth illusion
+  const cardRX = useTransform(rxSpring, [-0.5, 0.5], [-4, 4]);
+  const cardRY = useTransform(rySpring, [-0.5, 0.5], [4, -4]);
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduce) return;
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  }
+  function onLeave() {
+    mx.set(0);
+    my.set(0);
+  }
+
+  const headline = ["Scan", "before", "you", "send."];
+
   return (
-    <section className="relative pt-36 pb-20 md:pt-44 md:pb-28">
+    <section
+      ref={heroRef}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      className="relative pt-36 pb-20 md:pt-44 md:pb-28"
+      style={{ perspective: 1200 }}
+    >
+      {/* Drifting violet bloom behind headline */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-[28%] h-[420px] w-[820px] -translate-x-1/2 rounded-full"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
+        }}
+        animate={
+          reduce
+            ? undefined
+            : { x: [-30, 30, -30], opacity: [0.35, 0.55, 0.35] }
+        }
+        transition={
+          reduce ? undefined : { duration: 22, ease: "easeInOut", repeat: Infinity }
+        }
+      />
       <div className="mx-auto max-w-[1180px] px-6">
-        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr]">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border hairline bg-[var(--surface)] px-3 py-1.5 text-[11.5px] text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--violet)]" />
+        <motion.div
+          className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr]"
+          style={reduce ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+        >
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } } }}
+          >
+            <motion.div
+              variants={riseChild}
+              className="inline-flex items-center gap-2 rounded-full border hairline bg-[var(--surface)] px-3 py-1.5 text-[11.5px] text-muted-foreground"
+            >
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full bg-[var(--violet)]"
+                animate={reduce ? undefined : { opacity: [1, 0.4, 1] }}
+                transition={reduce ? undefined : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              />
               <span className="font-mono uppercase tracking-[0.18em]">Phase 1 · Preview</span>
-            </div>
+            </motion.div>
             <h1 className="mt-6 font-display text-[clamp(44px,7vw,76px)] font-medium leading-[1.02] tracking-[-0.025em] text-foreground">
-              Scan before
-              <br />
-              you send.
+              {headline.map((word, i) => (
+                <motion.span
+                  key={i}
+                  className="mr-[0.22em] inline-block"
+                  initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{
+                    duration: dur.lg,
+                    ease: ease.outExpo,
+                    delay: 0.15 + i * 0.06,
+                  }}
+                >
+                  {word}
+                  {i === 1 && <br />}
+                </motion.span>
+              ))}
             </h1>
-            <p className="mt-6 max-w-xl text-[16px] leading-relaxed text-muted-foreground">
+            <motion.p
+              variants={riseChild}
+              className="mt-6 max-w-xl text-[16px] leading-relaxed text-muted-foreground"
+            >
               Cardinal is a transaction firewall for Web3. We inspect every
               transaction before you sign — and tell you, in plain English,
               whether to{" "}
               <span className="text-[var(--success)]">allow</span>,{" "}
               <span className="text-[var(--warning)]">review</span>, or{" "}
               <span className="text-[var(--danger)]">block</span>.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            </motion.p>
+            <motion.div variants={riseChild} className="mt-9 flex flex-wrap items-center gap-3">
               <Link
                 to="/app"
-                className="group inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--violet)] px-5 text-[14px] font-medium text-white transition-transform hover:-translate-y-px"
+                className="group btn-lift shimmer-cta relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-xl bg-[var(--violet)] px-5 text-[14px] font-medium text-white"
                 style={{ boxShadow: "0 16px 40px -12px rgba(139,92,246,0.6)" }}
               >
-                Launch App
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <span className="relative z-10">Launch App</span>
+                <ArrowRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <a
                 href="#how"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border hairline-strong bg-[var(--surface)] px-5 text-[14px] text-foreground transition-colors hover:bg-[var(--surface-2)]"
+                className="btn-lift inline-flex h-11 items-center gap-2 rounded-xl border hairline-strong bg-[var(--surface)] px-5 text-[14px] text-foreground transition-colors hover:bg-[var(--surface-2)]"
               >
                 How it works
               </a>
-            </div>
-            <div className="mt-10 flex flex-wrap items-center gap-6 text-[12.5px] text-muted-foreground">
+            </motion.div>
+            <motion.div variants={riseChild} className="mt-10 flex flex-wrap items-center gap-6 text-[12.5px] text-muted-foreground">
               <Trust icon={<Lock className="h-3.5 w-3.5" />}>Non-custodial</Trust>
               <Trust icon={<ShieldCheck className="h-3.5 w-3.5" />}>Read-only scanning</Trust>
               <Trust icon={<Sparkles className="h-3.5 w-3.5" />}>Plain-English signals</Trust>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Mock preview card */}
-          <div className="relative">
-            <div
-              className="absolute -inset-8 -z-10 rounded-[40px]"
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.7, ease: ease.outExpo, delay: 0.25 }}
+            style={reduce ? undefined : { rotateX: cardRX, rotateY: cardRY, transformStyle: "preserve-3d" }}
+          >
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute -inset-8 -z-10 rounded-[40px]"
               style={{
                 background:
-                  "radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 70%)",
+                  "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
               }}
+              animate={reduce ? undefined : { opacity: [0.45, 0.75, 0.45] }}
+              transition={reduce ? undefined : { duration: 6, ease: "easeInOut", repeat: Infinity }}
             />
-            <div className="surface-raise overflow-hidden rounded-2xl">
+            <motion.div
+              className="surface-raise overflow-hidden rounded-2xl"
+              animate={reduce ? undefined : { y: [0, -4, 0] }}
+              transition={reduce ? undefined : { duration: 8, ease: "easeInOut", repeat: Infinity }}
+              whileHover={reduce ? undefined : { y: -2 }}
+            >
               <VerdictHeader
                 verdict="REVIEW"
                 score={58}
@@ -124,15 +229,22 @@ function Hero() {
                     severity: "info" as const,
                   },
                 ].map((s, i) => (
-                  <SignalRow key={i} signal={s} />
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: dur.md, ease: ease.outExpo, delay: 0.7 + i * 0.08 }}
+                  >
+                    <SignalRow signal={s} />
+                  </motion.div>
                 ))}
               </div>
               <div className="border-t hairline px-5 py-3.5 text-[11px] text-muted-foreground">
                 Live preview · Risky approval demo
               </div>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
