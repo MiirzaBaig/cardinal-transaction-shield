@@ -192,7 +192,7 @@ export function TxComposer({
           onClick={onScan}
           disabled={!ready}
           className={cn(
-            "group inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-[14px] font-medium transition-all",
+            "btn-lift group inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-[14px] font-medium",
             ready
               ? "bg-[var(--violet)] text-white hover:bg-[#9a6cff]"
               : "bg-white/[0.04] text-muted-foreground",
@@ -218,7 +218,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border hairline bg-[var(--surface)] px-4 py-3 transition-colors focus-within:border-[rgba(139,92,246,0.45)]">
+    <div className="focus-halo rounded-xl border hairline bg-[var(--surface)] px-4 py-3">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {label}
