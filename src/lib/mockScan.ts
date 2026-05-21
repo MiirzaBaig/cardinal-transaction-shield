@@ -167,3 +167,6 @@ export const SCAN_STEPS = [
   "Running simulation",
   "Scoring risk",
 ] as const;
+
+// Non-uniform pacing — feels like real work, not a fake loader.
+export const SCAN_STEP_DURATIONS_MS = [400, 600, 800, 1000, 800];
