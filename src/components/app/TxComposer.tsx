@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { ArrowRight, Paperclip, RotateCcw, Zap } from "lucide-react";
 import { CHAINS, TOKENS, type TxType } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+import { Select } from "./Select";
 
 export type ComposerState = {
   type: TxType;
@@ -80,32 +80,22 @@ export function TxComposer({
       <div className="mt-5 grid gap-4">
         {/* Chain + Token row */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Chain">
-            <select
+          <FieldShell label="Chain">
+            <Select
               value={value.chain}
-              onChange={(e) => set("chain", e.target.value)}
-              className="w-full bg-transparent text-[14px] text-foreground outline-none"
-            >
-              {CHAINS.map((c) => (
-                <option key={c.id} value={c.id} className="bg-[var(--surface-2)]">
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Token">
-            <select
+              onChange={(v) => set("chain", v)}
+              options={CHAINS.map((c) => ({ value: c.id, label: c.name, hint: c.short }))}
+              className="h-9 w-full justify-between"
+            />
+          </FieldShell>
+          <FieldShell label="Token">
+            <Select
               value={value.token}
-              onChange={(e) => set("token", e.target.value)}
-              className="w-full bg-transparent text-[14px] text-foreground outline-none"
-            >
-              {TOKENS.map((t) => (
-                <option key={t.symbol} value={t.symbol} className="bg-[var(--surface-2)]">
-                  {t.symbol} — {t.name}
-                </option>
-              ))}
-            </select>
-          </Field>
+              onChange={(v) => set("token", v)}
+              options={TOKENS.map((t) => ({ value: t.symbol, label: `${t.symbol} — ${t.name}` }))}
+              className="h-9 w-full justify-between"
+            />
+          </FieldShell>
         </div>
 
         {/* Recipient */}
@@ -236,6 +226,17 @@ function Field({
         {right}
       </div>
       <div className="flex items-center gap-2">{children}</div>
+    </div>
+  );
+}
+
+function FieldShell({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-1.5 px-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </div>
+      {children}
     </div>
   );
 }
