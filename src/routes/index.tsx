@@ -3,15 +3,12 @@ import {
   ArrowRight,
   ArrowUpRight,
   CheckCircle2,
-  Layers,
   Lock,
-  Network,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
   Vault,
   Workflow,
-  Zap,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
