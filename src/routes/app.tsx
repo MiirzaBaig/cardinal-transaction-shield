@@ -137,7 +137,13 @@ function AppPage() {
           <div className="relative z-10 mx-auto flex min-h-full max-w-[920px] flex-col px-6 py-8">
             {/* Workspace header */}
             <div className="mb-5 flex items-center justify-between">
-              <Stepper stage={stage} />
+              <Stepper
+                stage={
+                  stage === "submitted" || stage === "cancelled"
+                    ? "verdict"
+                    : (stage as Stage)
+                }
+              />
               <div className="hidden items-center gap-2 text-[11.5px] text-muted-foreground md:flex">
                 <span className="font-mono uppercase tracking-[0.16em]">Scenario</span>
                 <span className="rounded-md border hairline px-2 py-0.5 text-foreground/85">
