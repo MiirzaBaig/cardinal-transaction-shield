@@ -35,9 +35,20 @@ export function ResultPanel({
   const v = result.verdict;
   const accent =
     v === "ALLOW" ? "var(--success)" : v === "REVIEW" ? "var(--warning)" : "var(--danger)";
+  const tint =
+    v === "ALLOW"
+      ? "rgba(52,211,153,0.08)"
+      : v === "REVIEW"
+        ? "rgba(251,191,36,0.08)"
+        : "rgba(239,68,68,0.08)";
 
   return (
-    <div>
+    <div
+      className={cn("relative", v === "BLOCK" && "border-pulse-danger rounded-2xl")}
+      style={{
+        backgroundImage: `radial-gradient(60% 40% at 100% 0%, ${tint}, transparent 70%)`,
+      }}
+    >
       <VerdictHeader verdict={v} score={result.score} summary={result.summary} />
       <div className="border-t hairline">
         <div className="px-6 py-3">
@@ -45,11 +56,24 @@ export function ResultPanel({
             Signals · {result.signals.length}
           </span>
         </div>
-        <div className="border-t hairline">
+        <motion.div
+          className="border-t hairline"
+          initial="initial"
+          animate="animate"
+          variants={{ animate: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } } }}
+        >
           {result.signals.map((s, i) => (
-            <SignalRow key={i} signal={s} />
+            <motion.div
+              key={i}
+              variants={{
+                initial: { opacity: 0, y: 8 },
+                animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+              }}
+            >
+              <SignalRow signal={s} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Live trace */}
         <div className="border-t hairline">
@@ -91,7 +115,12 @@ export function ResultPanel({
       </div>
 
       {/* Footer actions */}
-      <div className="border-t hairline p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.32, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="border-t hairline p-6"
+      >
         {v === "REVIEW" && (
           <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4">
             <input
@@ -109,7 +138,7 @@ export function ResultPanel({
           {v === "ALLOW" && (
             <button
               onClick={onProceed}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--success)] px-5 text-[14px] font-medium text-[#062014] transition-transform hover:-translate-y-px"
+              className="btn-lift inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--success)] px-5 text-[14px] font-medium text-[#062014]"
               style={{ boxShadow: "0 12px 36px -12px rgba(52,211,153,0.55)" }}
             >
               Proceed <ArrowRight className="h-4 w-4" />
@@ -120,7 +149,7 @@ export function ResultPanel({
               onClick={onProceed}
               disabled={!ack}
               className={cn(
-                "inline-flex h-11 items-center gap-2 rounded-xl px-5 text-[14px] font-medium transition-all",
+                "btn-lift inline-flex h-11 items-center gap-2 rounded-xl px-5 text-[14px] font-medium",
                 ack
                   ? "bg-[var(--warning)] text-[#2a1f00]"
                   : "bg-white/[0.04] text-muted-foreground",
@@ -134,7 +163,8 @@ export function ResultPanel({
             <>
               <button
                 onClick={onCancel}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--danger)] px-5 text-[14px] font-medium text-white"
+                className="btn-lift inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--danger)] px-5 text-[14px] font-medium text-white"
+                style={{ boxShadow: "0 12px 36px -12px rgba(239,68,68,0.55)" }}
               >
                 <X className="h-4 w-4" /> Cancel transaction
               </button>
@@ -149,7 +179,7 @@ export function ResultPanel({
 
           <button
             onClick={onReset}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border hairline px-4 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            className="btn-lift inline-flex h-11 items-center gap-2 rounded-xl border hairline px-4 text-[13px] text-muted-foreground hover:text-foreground"
           >
             <RotateCcw className="h-3.5 w-3.5" /> Run another scan
           </button>
@@ -161,7 +191,7 @@ export function ResultPanel({
             {v === "BLOCK" ? "Why was this blocked?" : "Full signal details"}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
