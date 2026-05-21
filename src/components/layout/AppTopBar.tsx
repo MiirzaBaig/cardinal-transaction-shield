@@ -1,7 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { CardinalWordmark } from "@/components/brand/Logo";
+import { CardinalMark } from "@/components/brand/Logo";
 import { CHAINS, MOCK_ENS, shortAddr } from "@/lib/mockData";
-import { ChevronDown, Power } from "lucide-react";
+import { Power } from "lucide-react";
+import { Select } from "@/components/app/Select";
+
+const CHAIN_DOT: Record<string, string> = {
+  ethereum: "var(--violet)",
+  base: "#0052ff",
+  arbitrum: "#28a0f0",
+  polygon: "#8247e5",
+};
 
 export function AppTopBar({
   connected,
@@ -21,40 +29,36 @@ export function AppTopBar({
   return (
     <header className="sticky top-0 z-30 border-b hairline bg-[rgba(8,8,15,0.78)] backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1380px] items-center gap-3 px-5">
-        <Link to="/" className="mr-2">
-          <CardinalWordmark />
+        <Link to="/" className="mr-1" aria-label="Cardinal home">
+          <CardinalMark />
         </Link>
         <span className="hidden h-5 w-px bg-white/10 md:inline-block" />
-        <Pill>
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--violet)]" />
-          <select
-            value={chain}
-            onChange={(e) => onChain(e.target.value)}
-            className="bg-transparent text-[12.5px] text-foreground outline-none"
-          >
-            {CHAINS.map((c) => (
-              <option key={c.id} value={c.id} className="bg-[var(--surface-2)]">
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-        </Pill>
-        <Pill>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Mode
-          </span>
-          <select
-            value={mode}
-            onChange={(e) => onMode(e.target.value as typeof mode)}
-            className="bg-transparent text-[12.5px] text-foreground outline-none"
-          >
-            <option className="bg-[var(--surface-2)]">Standard</option>
-            <option className="bg-[var(--surface-2)]">Strict</option>
-            <option className="bg-[var(--surface-2)]">Watch-only</option>
-          </select>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-        </Pill>
+        <Select
+          value={chain}
+          onChange={onChain}
+          options={CHAINS.map((c) => ({
+            value: c.id,
+            label: c.name,
+            hint: c.short,
+            dot: CHAIN_DOT[c.id] ?? "var(--violet)",
+          }))}
+          leading={
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: CHAIN_DOT[chain] ?? "var(--violet)" }}
+            />
+          }
+        />
+        <Select
+          value={mode}
+          onChange={(v) => onMode(v as typeof mode)}
+          label="Mode"
+          options={[
+            { value: "Standard", label: "Standard", hint: "Default" },
+            { value: "Strict", label: "Strict", hint: "Block more" },
+            { value: "Watch-only", label: "Watch-only", hint: "No signing" },
+          ]}
+        />
 
         <div className="ml-auto flex items-center gap-2">
           {connected ? (
@@ -87,13 +91,5 @@ export function AppTopBar({
         </div>
       </div>
     </header>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="hidden h-8 items-center gap-2 rounded-lg border hairline bg-[var(--surface)] px-2.5 sm:inline-flex">
-      {children}
-    </div>
   );
 }

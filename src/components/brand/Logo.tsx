@@ -2,32 +2,52 @@ import { cn } from "@/lib/utils";
 
 export function CardinalMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      className={cn("h-7 w-7", className)}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <span
+      className={cn(
+        "relative inline-flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-[rgba(139,92,246,0.08)]",
+        className,
+      )}
       aria-hidden="true"
     >
-      <defs>
-        <linearGradient id="cg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#A78BFA" />
-          <stop offset="1" stopColor="#6366F1" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M16 2.5 4 7v9c0 7.2 5 12 12 13.5 7-1.5 12-6.3 12-13.5V7L16 2.5Z"
-        stroke="url(#cg)"
-        strokeWidth="1.6"
+      <span
+        className="pointer-events-none absolute inset-0 rounded-[10px]"
+        style={{
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -8px 16px -8px rgba(139,92,246,0.25)",
+        }}
       />
-      <path
-        d="M16 9.5 9 12.4v5c0 3.7 3 6.4 7 7.6 4-1.2 7-3.9 7-7.6v-5L16 9.5Z"
-        fill="url(#cg)"
-        fillOpacity="0.18"
-        stroke="url(#cg)"
-        strokeWidth="1.2"
-      />
-    </svg>
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="cmark" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#C4B5FD" />
+            <stop offset="1" stopColor="#6366F1" />
+          </linearGradient>
+        </defs>
+        {/* Outer arc */}
+        <path
+          d="M19 7.5A8 8 0 1 0 19 16.5"
+          stroke="url(#cmark)"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
+        {/* Inner arc with scan notch */}
+        <path
+          d="M16 9.5A4.5 4.5 0 1 0 16 14.5"
+          stroke="url(#cmark)"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          opacity="0.7"
+        />
+        {/* Scan dot */}
+        <circle cx="12" cy="12" r="1.1" fill="url(#cmark)" />
+      </svg>
+    </span>
   );
 }
 
@@ -35,7 +55,7 @@ export function CardinalWordmark({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <CardinalMark />
-      <span className="font-display text-[17px] font-medium tracking-tight text-foreground">
+      <span className="font-display text-[16.5px] font-medium tracking-[-0.01em] text-foreground">
         Cardinal
       </span>
     </div>

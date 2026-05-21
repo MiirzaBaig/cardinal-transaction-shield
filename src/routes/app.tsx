@@ -7,9 +7,11 @@ import { Stepper, type Stage } from "@/components/app/Stepper";
 import { TxComposer, type ComposerState } from "@/components/app/TxComposer";
 import { ScanProgress } from "@/components/app/ScanProgress";
 import { ResultPanel } from "@/components/app/ResultPanel";
+import { SubmittedPanel } from "@/components/app/SubmittedPanel";
 import { DetailsDrawer } from "@/components/app/DetailsDrawer";
 import { PRESETS } from "@/lib/mockData";
 import { runMockScan, type ScanResult } from "@/lib/mockScan";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app")({
   component: AppPage,
@@ -37,7 +39,7 @@ function AppPage() {
 
   const [composer, setComposer] = useState<ComposerState>(initialComposer);
   const [activePreset, setActivePreset] = useState<string | undefined>();
-  const [stage, setStage] = useState<Stage>("compose");
+  const [stage, setStage] = useState<Stage | "submitted" | "cancelled">("compose");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [drawer, setDrawer] = useState(false);
 
@@ -71,6 +73,20 @@ function AppPage() {
     setActivePreset(undefined);
     setResult(null);
     setStage("compose");
+  };
+
+  const onProceed = () => {
+    toast.success("Transaction submitted", {
+      description: "Mock broadcast · no real transaction was sent.",
+    });
+    setStage("submitted");
+  };
+
+  const onCancel = () => {
+    toast("Transaction cancelled", {
+      description: "Cardinal blocked the request.",
+    });
+    setStage("cancelled");
   };
 
   const onPickActivity = () => {
@@ -121,7 +137,13 @@ function AppPage() {
           <div className="relative z-10 mx-auto flex min-h-full max-w-[920px] flex-col px-6 py-8">
             {/* Workspace header */}
             <div className="mb-5 flex items-center justify-between">
-              <Stepper stage={stage} />
+              <Stepper
+                stage={
+                  stage === "submitted" || stage === "cancelled"
+                    ? "verdict"
+                    : (stage as Stage)
+                }
+              />
               <div className="hidden items-center gap-2 text-[11.5px] text-muted-foreground md:flex">
                 <span className="font-mono uppercase tracking-[0.16em]">Scenario</span>
                 <span className="rounded-md border hairline px-2 py-0.5 text-foreground/85">
@@ -175,7 +197,19 @@ function AppPage() {
                       result={result}
                       onReset={onReset}
                       onDetails={() => setDrawer(true)}
+                      onProceed={onProceed}
+                      onCancel={onCancel}
                     />
+                  </motion.div>
+                )}
+                {(stage === "submitted" || stage === "cancelled") && (
+                  <motion.div
+                    key={stage}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                  >
+                    <SubmittedPanel kind={stage} onReset={onReset} />
                   </motion.div>
                 )}
               </AnimatePresence>

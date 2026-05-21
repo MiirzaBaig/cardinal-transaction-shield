@@ -1,105 +1,78 @@
-# `/app` — Revamp plan
 
-## What's wrong today
+# Cardinal · UI revamp plan
 
-Looking at the current screen, the page is doing too much in parallel and you can't tell where to look first.
+Four focused upgrades. No business-logic changes — purely presentation + one missing interaction.
 
-- **Three columns of equal weight.** Wallet rail (left), composer (center), signal log + activity (right) all compete. The composer — the actual product — is the smallest of the three.
-- **The wallet rail has four stacked cards** (account, total balance, balances, quick actions) and most of them are just chrome. "Total balance" and "Balances" overlap. "Quick actions" doesn't do anything useful yet.
-- **The signal log on the right is empty** until you scan. That's a big idle card eating the page.
-- **Recent activity sits next to the composer**, pulling attention away from the thing you're supposed to be doing.
-- **The header takes ~25% of vertical space** ("Control center / Scan before you send / Compose a transaction…") before you can see the actual composer.
-- **Demo presets are in a horizontal row that crowds the top of the composer column**, so the three options feel like nav, not like a primary CTA.
+---
 
-Net effect: the page feels like a dashboard instead of a single, confident workflow.
+## 1. New Cardinal mark (logo)
 
-## New direction — focused workspace, one job at a time
+The current shield reads "generic crypto". Replace with a more distinctive, institutional mark inspired by Linear / Vercel / Phantom / Arc:
 
-Strip `/app` down to one clear path: **pick a scenario → compose → scan → decide**. Everything else collapses or moves out of the way.
+- **Concept**: a compact monogram — a refined "C" formed by two concentric arcs with a single inset notch (suggesting a "scan line" / shield gap). Pure geometry, no gradients by default; a single subtle violet→indigo gradient only on hover/active.
+- **Shape**: 28×28, 1.5px stroke, rounded line caps, on a soft 8px squircle plate (`rgba(139,92,246,0.08)` background, hairline border). Plate gives it weight without a heavy fill.
+- **Wordmark**: drop "Cardinal" text from the in-app top bar (mark only, like Linear's sidebar). Keep wordmark on the marketing navbar and footer.
+- **Files**: rewrite `src/components/brand/Logo.tsx` — export `CardinalMark` (plate + glyph) and `CardinalWordmark` (mark + text). Replace usage in `AppTopBar` with `<CardinalMark />` only.
 
+---
+
+## 2. Navbar revamp (marketing)
+
+Move from the current floating pill to a **YC/Linear-style rectangular glass bar**:
+
+- Full-width fixed bar, 64px tall, hairline bottom border only (no floating pill, no rounded outer card).
+- Background: `rgba(10,10,16,0.55)` + `backdrop-blur(20px) saturate(140%)`, with a faint top inner highlight (`inset 0 1px 0 rgba(255,255,255,0.04)`).
+- Centered max-width 1200px content row: wordmark left, nav links center (Product · How it works · About · Roadmap), right cluster = "Sign in" ghost link + "Launch App" primary.
+- Links: 13px, `text-muted-foreground`, hover→foreground, active gets a 2px violet underline that animates in (layout shift-free using absolute positioning).
+- Scroll behavior: at scrollY > 8px, background opacity rises to 0.75 and the bottom hairline becomes visible. Smooth transition.
+- File: rewrite `src/components/layout/Navbar.tsx`.
+
+---
+
+## 3. Dropdowns / select revamp (global)
+
+Today the network + mode selects in `AppTopBar` are native `<select>` elements rendering the OS menu (the screenshot of the white menu). Replace with **shadcn `DropdownMenu`** themed to Cardinal:
+
+- **Trigger**: same compact pill (`h-9`, hairline border, mono uppercase label + value).
+- **Menu surface**: `bg-[rgba(14,14,22,0.92)]` + `backdrop-blur-xl`, 1px hairline border `rgba(255,255,255,0.08)`, 12px radius, soft shadow `0 24px 60px -20px rgba(0,0,0,0.7)`, 6px inner padding.
+- **Items**: 13px, 36px tall, 10px horizontal padding, rounded 8px. Hover = `bg-white/[0.04]`. Active item gets a left 2px violet bar + violet text. Check icon (lucide `Check`) on the right for the selected one. Subtle 120ms fade+slide-in animation.
+- **Color dot** retained for chains (violet for Ethereum, etc.).
+- Apply same treatment everywhere we use native `<select>` (audit `AppTopBar`, `TxComposer` chain/token selectors, any preset menus).
+- File changes: update `AppTopBar.tsx`, `TxComposer.tsx`, lean on existing `src/components/ui/dropdown-menu.tsx` (already shadcn). Add a small wrapper `Select` in `src/components/app/Select.tsx` for reuse (label + trigger + menu) so all dropdowns stay consistent.
+
+---
+
+## 4. "Proceed" actually does something + verdict polish
+
+Currently `Proceed` / `Proceed anyway` / `Cancel transaction` buttons in `ResultPanel.tsx` have no `onClick`. Wire them:
+
+- Add `onProceed` and `onCancel` callbacks from `app.tsx`.
+- On click → show a **success toast** ("Transaction submitted · mock") via existing `sonner`, then transition the workspace surface to a new lightweight **"Submitted" state**: a centered checkmark, tx hash placeholder (`0x…mock`), "View on explorer" (disabled link), and a primary "Run another scan" button → resets to `compose`.
+- For `BLOCK` → "Cancel transaction" routes back to `compose` with a muted toast ("Transaction cancelled").
+- Adds new `Stage = 'submitted' | 'cancelled'` variants and a tiny `SubmittedPanel.tsx`.
+
+---
+
+## Technical notes
+
+- All colors stay on existing tokens in `src/styles.css` (`--violet`, `--success`, hairline). No new tokens needed except a `--menu-surface` for dropdown background (added to `:root`).
+- Animations via Framer Motion already in the project — no new deps.
+- No backend, no schema, no routing changes.
+
+### Files touched
 ```text
-┌─────────────────────────────────────────────────────────────────────┐
-│  Cardinal · Ethereum ▾ · Standard ▾           vault.cardinal.eth ▾  │  thin topbar (unchanged)
-├──────────────────┬──────────────────────────────────────────────────┤
-│                  │                                                  │
-│  Sidebar         │  ── Stepper: ① Compose  ② Scan  ③ Decide ───     │
-│  (collapsible)   │                                                  │
-│                  │  ┌──────────────────────────────────────────┐    │
-│  Wallet (compact)│  │                                          │    │
-│  Tabs:           │  │      One large workspace surface         │    │
-│  · Activity      │  │      Composer → Scan → Verdict           │    │
-│  · Balances      │  │                                          │    │
-│                  │  │                                          │    │
-│  Demo scenarios  │  └──────────────────────────────────────────┘    │
-│  (chips/list)    │                                                  │
-│                  │                                                  │
-└──────────────────┴──────────────────────────────────────────────────┘
+src/components/brand/Logo.tsx          (rewrite — new mark)
+src/components/layout/Navbar.tsx       (rewrite — glass rectangle)
+src/components/layout/AppTopBar.tsx    (mark only + new Select)
+src/components/app/Select.tsx          (new — themed dropdown wrapper)
+src/components/app/TxComposer.tsx      (swap native selects)
+src/components/app/ResultPanel.tsx     (wire Proceed/Cancel)
+src/components/app/SubmittedPanel.tsx  (new — post-action state)
+src/routes/app.tsx                     (new stages + handlers + toast)
+src/styles.css                         (add --menu-surface token)
 ```
 
-## What changes specifically
-
-### 1. Kill the three-column layout
-- Drop to **two columns**: a compact 260px sidebar, and a wide workspace.
-- Sidebar is **collapsible** (chevron in the corner) → workspace goes full-width.
-
-### 2. Compact wallet block (top of sidebar)
-- One small card: avatar pip + ENS + short address + "read-only" badge.
-- That's it. No "total balance" card, no quick actions card.
-- A single **tabbed strip** below: `Activity` · `Balances`. Default = Activity. List view in both.
-
-### 3. Demo scenarios become the entry point, not an afterthought
-- Move them into the sidebar as a labeled list, **above the wallet** (because that's the first decision):
-  - `Safe transfer` · green dot
-  - `Risky approval` · amber dot
-  - `Drainer contract` · red dot
-- Each is a single tap. The active one is highlighted in the sidebar so you always know which scenario is loaded.
-- Also keep a single small "Custom transaction" entry that opens the blank composer.
-
-### 4. Workspace surface — one large card, three sequential states
-- Replace the page heading "Control center / Scan before you send" with a thin **stepper** inside the surface header: `① Compose  ② Scan  ③ Decide`. The stepper itself communicates what page you're on, so the giant H1 is unnecessary.
-- The surface fills the rest of the viewport and only ever shows one state at a time:
-  1. **Compose** — the existing TxComposer, but breathing in the full width: type tabs across the top, recipient on its own row, amount + token on one row, gas/sim strip as a foot, primary "Scan transaction" button anchored bottom-right.
-  2. **Scan** — checklist + soft progress bar, exactly as today.
-  3. **Decide** — `VerdictHeader` + grouped signals. The **right rail's old "Signal log" merges into here** as a collapsible "Live trace" panel under the signals (so it only shows when there's something to show).
-
-### 5. Sidebar Activity tab replaces the right rail
-- The "Recent activity" feed that was on the right slides into the sidebar's Activity tab.
-- Clicking an item rehydrates the workspace with that scan's verdict (already in mock data).
-- Empty signal-log card is removed entirely.
-
-### 6. Header cleanup
-- Remove "Control center / Scan before you send / Compose a transaction, run it…" block above the grid. It's redundant once the stepper is in place.
-- Top app bar (Cardinal · network · mode · account) stays as is.
-
-### 7. Density + hierarchy
-- One ambient violet wash behind the workspace surface only (not the whole page).
-- Sidebar surfaces drop to flat `--surface` (no glass, no shadow) so the workspace surface visually leads.
-- Recent activity rows lose the timestamp column on narrow widths and rely on tooltips.
-
-## What stays
-
-- All existing components: `TxComposer`, `ScanProgress`, `VerdictHeader`, `RiskMeter`, `SignalRow`, `ResultPanel`, `DetailsDrawer`, `ActivityFeed`, mock scan logic, demo presets.
-- Color tokens, type system, motion language.
-- The verdict footer pattern (Allow/Review/Block) — proven, don't touch.
-
-## What gets removed
-
-- `WalletRail`'s "Total balance" card and "Quick actions" card.
-- Right-column `SignalsLog` standalone surface (merges into Decide state).
-- Standalone `DemoPresetBar` (its content moves into the sidebar).
-- Page-level "Control center" heading block.
-
-## Files affected (technical, FYI)
-
-- `src/routes/app.tsx` — restructure to 2-col layout + stepper state.
-- `src/components/app/WalletRail.tsx` — slim down to compact card.
-- New `src/components/app/Sidebar.tsx` — scenarios list, wallet, tabs.
-- `src/components/app/SignalsLog.tsx` — repurpose as "Live trace" inside the verdict state.
-- `src/components/app/DemoPresetBar.tsx` — delete (replaced by sidebar list).
-- `src/components/app/ResultPanel.tsx` — embed the live trace toggle.
-
-## Open question
-
-Want the sidebar to default **open** (260px) or **collapsed to icons** (56px)? Open feels more inviting for first-time users; collapsed feels more "pro tool / control center." I'll default to **open** unless you say otherwise.
-
-Approve and I'll build it.
+### Out of scope (ask later if wanted)
+- Sidebar visual changes
+- Landing page hero rework
+- Real wallet / RPC integration
