@@ -300,48 +300,6 @@ function Features() {
   );
 }
 
-function HowItWorks() {
-  const steps = [
-    { n: "01", title: "Connect", desc: "Link a wallet. Cardinal stays read-only." },
-    { n: "02", title: "Compose", desc: "Build the transaction you want to send." },
-    { n: "03", title: "Scan", desc: "Cardinal inspects the transaction end-to-end." },
-    { n: "04", title: "Verdict", desc: "A clear Allow, Review, or Block result." },
-    { n: "05", title: "Decide", desc: "Proceed safely, or stop the transaction cold." },
-  ];
-  return (
-    <section id="how" className="border-t hairline py-24 md:py-28">
-      <div className="mx-auto max-w-[1180px] px-6">
-        <RevealOnScroll variant="rise">
-          <SectionHeading
-            eyebrow="How it works"
-            title="A clear path from intent to safety."
-            subtitle="Five steps, every time. No surprises, no jargon."
-          />
-        </RevealOnScroll>
-        <motion.div
-          className="mt-12 grid gap-px overflow-hidden rounded-2xl border hairline bg-[var(--hairline)] md:grid-cols-5"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-        >
-          {steps.map((s) => (
-            <motion.div key={s.n} variants={riseChild} className="bg-[var(--surface)] p-6">
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Step {s.n}
-              </div>
-              <h4 className="mt-3 font-display text-[19px] font-medium tracking-tight">
-                {s.title}
-              </h4>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
 function Roadmap() {
   const items = [
     { q: "Q2 2026", status: "Live", title: "Risk Scan v1", desc: "Recipient, permissions, simulation, network." },
