@@ -185,66 +185,7 @@ function Hero() {
             transition={{ duration: 0.7, ease: ease.outExpo, delay: 0.25 }}
             style={reduce ? undefined : { rotateX: cardRX, rotateY: cardRY, transformStyle: "preserve-3d" }}
           >
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute -inset-8 -z-10 rounded-[40px]"
-              style={{
-                background:
-                  "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
-              }}
-              animate={reduce ? undefined : { opacity: [0.45, 0.75, 0.45] }}
-              transition={reduce ? undefined : { duration: 6, ease: "easeInOut", repeat: Infinity }}
-            />
-            <motion.div
-              className="surface-raise overflow-hidden rounded-2xl"
-              animate={reduce ? undefined : { y: [0, -4, 0] }}
-              transition={reduce ? undefined : { duration: 8, ease: "easeInOut", repeat: Infinity }}
-              whileHover={reduce ? undefined : { y: -2 }}
-            >
-              <VerdictHeader
-                verdict="REVIEW"
-                score={58}
-                summary="Review carefully before you sign — a few signals need your attention."
-                compact
-              />
-              <div className="border-t hairline">
-                {[
-                  {
-                    group: "Permissions" as const,
-                    label: "Unlimited spending approval",
-                    detail:
-                      "This grants the spender permission to move any amount of your USDT, indefinitely.",
-                    severity: "warn" as const,
-                  },
-                  {
-                    group: "Recipient" as const,
-                    label: "New counterparty",
-                    detail:
-                      "You haven't interacted with this address before. Contract deployed 6 days ago.",
-                    severity: "warn" as const,
-                  },
-                  {
-                    group: "Simulation" as const,
-                    label: "Simulation succeeded",
-                    detail:
-                      "The approval executes successfully on the simulated chain state.",
-                    severity: "info" as const,
-                  },
-                ].map((s, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: dur.md, ease: ease.outExpo, delay: 0.7 + i * 0.08 }}
-                  >
-                    <SignalRow signal={s} />
-                  </motion.div>
-                ))}
-              </div>
-              <div className="border-t hairline px-5 py-3.5 text-[11px] text-muted-foreground">
-                Live preview · Risky approval demo
-              </div>
-            </motion.div>
+            <LiveScanDemo />
           </motion.div>
         </motion.div>
       </div>
