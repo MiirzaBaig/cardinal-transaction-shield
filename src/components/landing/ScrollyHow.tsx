@@ -80,10 +80,12 @@ export function ScrollyHow() {
         className="relative mx-auto mt-12 max-w-[1180px] px-6"
         style={{ height: reduce ? "auto" : `${STEPS.length * 90}vh` }}
       >
-        <div className="sticky top-24 grid items-start gap-10 md:grid-cols-2">
-          {/* Left: pinned mock */}
+        <div className="grid gap-10 md:grid-cols-2">
+          {/* Left: pinned mock — sticky inside its own column so it tracks the whole right-column scroll */}
           <div className="relative">
-            <MockPanel activeFloat={activeFloat} reduce={!!reduce} />
+            <div className="sticky top-24 flex items-start justify-center">
+              <MockPanel activeFloat={activeFloat} reduce={!!reduce} />
+            </div>
           </div>
 
           {/* Right: stacked steps */}
