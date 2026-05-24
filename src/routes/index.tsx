@@ -22,8 +22,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBackground } from "@/components/layout/Background";
 import { RevealOnScroll, riseChild } from "@/components/layout/RevealOnScroll";
-import { VerdictHeader } from "@/components/app/VerdictHeader";
-import { SignalRow } from "@/components/app/SignalRow";
+import { LiveScanDemo } from "@/components/landing/LiveScanDemo";
+import { ThreatFeed } from "@/components/landing/ThreatFeed";
+import { ScrollyHow } from "@/components/landing/ScrollyHow";
 import { ease, dur } from "@/lib/motion";
 
 export const Route = createFileRoute("/")({
@@ -37,9 +38,10 @@ function Index() {
       <Navbar />
       <main className="relative z-10">
         <Hero />
+        <ThreatFeed />
         <TrustStrip />
         <Features />
-        <HowItWorks />
+        <ScrollyHow />
         <Roadmap />
         <CtaBanner />
       </main>
@@ -183,66 +185,7 @@ function Hero() {
             transition={{ duration: 0.7, ease: ease.outExpo, delay: 0.25 }}
             style={reduce ? undefined : { rotateX: cardRX, rotateY: cardRY, transformStyle: "preserve-3d" }}
           >
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute -inset-8 -z-10 rounded-[40px]"
-              style={{
-                background:
-                  "radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%)",
-              }}
-              animate={reduce ? undefined : { opacity: [0.45, 0.75, 0.45] }}
-              transition={reduce ? undefined : { duration: 6, ease: "easeInOut", repeat: Infinity }}
-            />
-            <motion.div
-              className="surface-raise overflow-hidden rounded-2xl"
-              animate={reduce ? undefined : { y: [0, -4, 0] }}
-              transition={reduce ? undefined : { duration: 8, ease: "easeInOut", repeat: Infinity }}
-              whileHover={reduce ? undefined : { y: -2 }}
-            >
-              <VerdictHeader
-                verdict="REVIEW"
-                score={58}
-                summary="Review carefully before you sign — a few signals need your attention."
-                compact
-              />
-              <div className="border-t hairline">
-                {[
-                  {
-                    group: "Permissions" as const,
-                    label: "Unlimited spending approval",
-                    detail:
-                      "This grants the spender permission to move any amount of your USDT, indefinitely.",
-                    severity: "warn" as const,
-                  },
-                  {
-                    group: "Recipient" as const,
-                    label: "New counterparty",
-                    detail:
-                      "You haven't interacted with this address before. Contract deployed 6 days ago.",
-                    severity: "warn" as const,
-                  },
-                  {
-                    group: "Simulation" as const,
-                    label: "Simulation succeeded",
-                    detail:
-                      "The approval executes successfully on the simulated chain state.",
-                    severity: "info" as const,
-                  },
-                ].map((s, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: dur.md, ease: ease.outExpo, delay: 0.7 + i * 0.08 }}
-                  >
-                    <SignalRow signal={s} />
-                  </motion.div>
-                ))}
-              </div>
-              <div className="border-t hairline px-5 py-3.5 text-[11px] text-muted-foreground">
-                Live preview · Risky approval demo
-              </div>
-            </motion.div>
+            <LiveScanDemo />
           </motion.div>
         </motion.div>
       </div>
@@ -349,48 +292,6 @@ function Features() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    { n: "01", title: "Connect", desc: "Link a wallet. Cardinal stays read-only." },
-    { n: "02", title: "Compose", desc: "Build the transaction you want to send." },
-    { n: "03", title: "Scan", desc: "Cardinal inspects the transaction end-to-end." },
-    { n: "04", title: "Verdict", desc: "A clear Allow, Review, or Block result." },
-    { n: "05", title: "Decide", desc: "Proceed safely, or stop the transaction cold." },
-  ];
-  return (
-    <section id="how" className="border-t hairline py-24 md:py-28">
-      <div className="mx-auto max-w-[1180px] px-6">
-        <RevealOnScroll variant="rise">
-          <SectionHeading
-            eyebrow="How it works"
-            title="A clear path from intent to safety."
-            subtitle="Five steps, every time. No surprises, no jargon."
-          />
-        </RevealOnScroll>
-        <motion.div
-          className="mt-12 grid gap-px overflow-hidden rounded-2xl border hairline bg-[var(--hairline)] md:grid-cols-5"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-        >
-          {steps.map((s) => (
-            <motion.div key={s.n} variants={riseChild} className="bg-[var(--surface)] p-6">
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Step {s.n}
-              </div>
-              <h4 className="mt-3 font-display text-[19px] font-medium tracking-tight">
-                {s.title}
-              </h4>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
             </motion.div>
           ))}
         </motion.div>
