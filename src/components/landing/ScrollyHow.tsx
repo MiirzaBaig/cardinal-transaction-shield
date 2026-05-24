@@ -4,9 +4,9 @@ import {
   useScroll,
   useTransform,
   useReducedMotion,
-  AnimatePresence,
+  type MotionValue,
 } from "framer-motion";
-import { CheckCircle2, ShieldAlert, ShieldX, Wallet, FileText, ScanLine, Send } from "lucide-react";
+import { ShieldX, Wallet, FileText, ScanLine, Send } from "lucide-react";
 import { ease, dur } from "@/lib/motion";
 import { RevealOnScroll } from "@/components/layout/RevealOnScroll";
 
@@ -107,7 +107,7 @@ function StepBlock({
 }: {
   step: Step;
   index: number;
-  activeFloat: ReturnType<typeof useTransform<number, number>>;
+  activeFloat: MotionValue<number>;
   reduce: boolean;
 }) {
   // Each step is "active" when activeFloat is within ±0.5 of its index
@@ -140,7 +140,7 @@ function MockPanel({
   activeFloat,
   reduce,
 }: {
-  activeFloat: ReturnType<typeof useTransform<number, number>>;
+  activeFloat: MotionValue<number>;
   reduce: boolean;
 }) {
   // We render all four states and crossfade based on proximity.
@@ -169,7 +169,7 @@ function StateLayer({
 }: {
   state: Step["state"];
   index: number;
-  activeFloat: ReturnType<typeof useTransform<number, number>>;
+  activeFloat: MotionValue<number>;
   reduce: boolean;
 }) {
   const opacity = useTransform(activeFloat, (v) => {
