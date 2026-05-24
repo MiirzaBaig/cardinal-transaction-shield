@@ -22,8 +22,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBackground } from "@/components/layout/Background";
 import { RevealOnScroll, riseChild } from "@/components/layout/RevealOnScroll";
-import { VerdictHeader } from "@/components/app/VerdictHeader";
-import { SignalRow } from "@/components/app/SignalRow";
+import { LiveScanDemo } from "@/components/landing/LiveScanDemo";
+import { ThreatFeed } from "@/components/landing/ThreatFeed";
+import { ScrollyHow } from "@/components/landing/ScrollyHow";
 import { ease, dur } from "@/lib/motion";
 
 export const Route = createFileRoute("/")({
@@ -37,9 +38,10 @@ function Index() {
       <Navbar />
       <main className="relative z-10">
         <Hero />
+        <ThreatFeed />
         <TrustStrip />
         <Features />
-        <HowItWorks />
+        <ScrollyHow />
         <Roadmap />
         <CtaBanner />
       </main>
